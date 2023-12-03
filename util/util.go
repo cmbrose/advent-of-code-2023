@@ -48,6 +48,18 @@ func Map[X, Y any](xArr []X, f func(X) Y) []Y {
 	return yArr
 }
 
+func Filter[X any](xArr []X, f func(X) bool) []X {
+	var filtered []X
+
+	for _, x := range xArr {
+		if f(x) {
+			filtered = append(filtered, x)
+		}
+	}
+
+	return filtered
+}
+
 func AssertInt(str string) int {
 	i, err := strconv.Atoi(str)
 	Check(err)
