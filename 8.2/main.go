@@ -38,7 +38,7 @@ func main() {
 		n.right = r
 	}
 
-	ns := util.Where(util.Values(nodes), func(n *node) bool {
+	ns := util.Filter(util.Values(nodes), func(n *node) bool {
 		return strings.HasSuffix(n.name, "A")
 	})
 

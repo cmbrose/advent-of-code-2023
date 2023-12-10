@@ -61,6 +61,15 @@ func Filter[X any](xArr []X, f func(X) bool) []X {
 	return filtered
 }
 
+func All[T any](arr []T, predicate func(T) bool) bool {
+	for _, v := range arr {
+		if !predicate(v) {
+			return false
+		}
+	}
+	return true
+}
+
 func AssertInt(str string) int {
 	i, err := strconv.Atoi(str)
 	Check(err)
@@ -128,26 +137,6 @@ func SortStringChars(s string) string {
 	})
 
 	return string(rs)
-}
-
-func All[T any](arr []T, predicate func(T) bool) bool {
-	for _, v := range arr {
-		if !predicate(v) {
-			return false
-		}
-	}
-	return true
-}
-
-func Where[T any](arr []T, predicate func(T) bool) []T {
-	var ret []T
-	for _, v := range arr {
-		if predicate(v) {
-			ret = append(ret, v)
-		}
-	}
-
-	return ret
 }
 
 func Keys[T comparable, U any](m map[T]U) []T {
