@@ -10,6 +10,10 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+type Number interface {
+	constraints.Integer | constraints.Float
+}
+
 type Char interface {
 	rune | byte
 }
@@ -68,6 +72,14 @@ func All[T any](arr []T, predicate func(T) bool) bool {
 		}
 	}
 	return true
+}
+
+func Sum[T Number](a []T) T {
+	var s T = 0
+	for _, v := range a {
+		s += v
+	}
+	return s
 }
 
 func AssertInt(str string) int {
