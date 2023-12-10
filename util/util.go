@@ -130,6 +130,60 @@ func SortStringChars(s string) string {
 	return string(rs)
 }
 
+func All[T any](arr []T, predicate func(T) bool) bool {
+	for _, v := range arr {
+		if !predicate(v) {
+			return false
+		}
+	}
+	return true
+}
+
+func Where[T any](arr []T, predicate func(T) bool) []T {
+	var ret []T
+	for _, v := range arr {
+		if predicate(v) {
+			ret = append(ret, v)
+		}
+	}
+
+	return ret
+}
+
+func Keys[T comparable, U any](m map[T]U) []T {
+	ret, i := make([]T, len(m)), 0
+	for k := range m {
+		ret[i] = k
+		i += 1
+	}
+	return ret
+}
+
+func Values[T comparable, U any](m map[T]U) []U {
+	ret, i := make([]U, len(m)), 0
+	for _, v := range m {
+		ret[i] = v
+		i += 1
+	}
+	return ret
+}
+
+func GCD(a, b int) int {
+	if b == 0 {
+		return a
+	}
+
+	return GCD(b, a%b)
+}
+
+func LCM(a ...int) int {
+	res := 1
+	for _, n := range a {
+		res = res * n / GCD(res, n)
+	}
+	return res
+}
+
 // Must be pre-sorted!
 func Intersect[T constraints.Ordered](a, b []T) []T {
 	var res []T
