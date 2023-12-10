@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -118,6 +119,15 @@ func MaxInt(ints ...int) int {
 	}
 
 	return max
+}
+
+func SortStringChars(s string) string {
+	rs := []rune(s)
+	sort.Slice(rs, func(i, j int) bool {
+		return rs[i] < rs[j]
+	})
+
+	return string(rs)
 }
 
 // Must be pre-sorted!
