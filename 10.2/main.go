@@ -130,9 +130,14 @@ foundS:
 
 	onlyPipe[ty1][tx1] = grid[ty1][tx1]
 
+	// Pad empty cells around the entire thing - note: after this, w and h are off by 2
+	// Could I just update their values? Yes. Will I? No.
 	onlyPipe = append([][]rune{util.Repeat(' ', w)}, onlyPipe...)
-	for i := 0; i <= h; i += 1 {
+	onlyPipe = append(onlyPipe, util.Repeat(' ', w))
+
+	for i := 0; i <= h+1; i += 1 {
 		onlyPipe[i] = append([]rune{' '}, onlyPipe[i]...)
+		onlyPipe[i] = append(onlyPipe[i], ' ')
 	}
 
 	util.PrintGrid(onlyPipe, "%c")
@@ -142,7 +147,7 @@ foundS:
 	q := []point{
 		{0, 0},
 	}
-	seen := util.FillGrid(w+1, h+1, false)
+	seen := util.FillGrid(w+2, h+2, false)
 
 	for len(q) > 0 {
 		x, y := q[0].x, q[0].y
@@ -153,9 +158,12 @@ foundS:
 		}
 
 		seen[y][x] = true
-		onlyPipe[y][x] = 'O'
 
-		// '┘', '└', '│', '─', '┌', '┐'
+		// The trick here is: envision you are at the top left corner of the current cell.
+		// Try to move from there, to the top left of an adjecent cell.
+		// Under which conditions are you blocked from making that move?
+		// Note: if you move up or left, then it is the next cell that blocks you, but
+		// if you move right or down, then it is actually the current cell.
 
 		// Try go up
 		if y > 0 && !seen[y-1][x] {
@@ -165,14 +173,14 @@ foundS:
 			}
 		}
 		// Try go down
-		if y < h && !seen[y+1][x] {
+		if y <= h && !seen[y+1][x] {
 			r := onlyPipe[y][x]
 			if r != '─' && r != '┐' && r != '┘' {
 				q = append(q, point{x, y + 1})
 			}
 		}
 		// Try go right
-		if x < w && !seen[y][x+1] {
+		if x <= w && !seen[y][x+1] {
 			r := onlyPipe[y][x]
 			if r != '│' && r != '└' && r != '┘' {
 				q = append(q, point{x + 1, y})
@@ -182,10 +190,29 @@ foundS:
 		if x > 0 && !seen[y][x-1] {
 			r := onlyPipe[y][x-1]
 			if r != '│' && r != '└' && r != '┘' {
-				q = append(q, point{x, y - 1})
+				q = append(q, point{x - 1, y})
 			}
 		}
 	}
 
-	//fmt.Println(cnt)
+	cnt := 0
+	for x := 0; x <= w+1; x += 1 {
+		for y := 0; y <= h+1; y += 1 {
+			if onlyPipe[y][x] != ' ' {
+				continue
+			}
+
+			if seen[y][x] {
+				onlyPipe[y][x] = 'O'
+			} else {
+				onlyPipe[y][x] = 'I'
+				cnt += 1
+			}
+		}
+	}
+
+	util.PrintGrid(onlyPipe, "%c")
+	fmt.Println()
+
+	fmt.Println(cnt)
 }
