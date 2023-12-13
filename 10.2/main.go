@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"main/util"
 )
@@ -10,26 +11,58 @@ func getAllowedMoves(r rune) (int, int, int, int) {
 	switch r {
 	case '.':
 		return 0, 0, 0, 0
-	case '|':
+	case '│':
 		return 0, 1, 0, -1
-	case '-':
+	case '─':
 		return 1, 0, -1, 0
-	case 'L':
+	case '└':
 		return 1, 0, 0, -1
-	case 'J':
+	case '┘':
 		return -1, 0, 0, -1
-	case '7':
+	case '┐':
 		return -1, 0, 0, 1
-	case 'F':
+	case '┌':
 		return 1, 0, 0, 1
 	}
 
 	panic(fmt.Sprintf("Unexpected char: %c", r))
 }
 
+func convertToBoxChars(s string) string {
+	s = strings.ReplaceAll(s, "J", "┘")
+	s = strings.ReplaceAll(s, "L", "└")
+	s = strings.ReplaceAll(s, "|", "│")
+	s = strings.ReplaceAll(s, "-", "─")
+	s = strings.ReplaceAll(s, "F", "┌")
+	s = strings.ReplaceAll(s, "7", "┐")
+
+	return s
+}
+
+func getStartShape(sx, sy, ax1, ay1, ax2, ay2 int) rune {
+	dx1, dy1, dx2, dy2 := ax1-sx, ay1-sy, ax2-sx, ay2-sy
+
+	matches := func(r rune) bool {
+		mx1, my1, mx2, my2 := getAllowedMoves(r)
+
+		return (mx1 == dx1 && my1 == dy1 && mx2 == dx2 && my2 == dy2) ||
+			(mx2 == dx1 && my2 == dy1 && mx1 == dx2 && my1 == dy2)
+	}
+
+	shapes := []rune{'┘', '└', '│', '─', '┌', '┐'}
+
+	matched := util.Filter(shapes, matches)
+
+	if len(matched) != 1 {
+		panic(fmt.Sprintf("Cound not find start shaped - options were %v", matched))
+	}
+
+	return matched[0]
+}
+
 func main() {
 	grid := util.Map(util.ReadInputLines("./input.txt"), func(line string) []rune {
-		return []rune(line)
+		return []rune(convertToBoxChars(line))
 	})
 
 	var sx, sy int
@@ -69,7 +102,7 @@ foundS:
 	}
 
 	onlyPipe := util.FillGrid[rune](w, h, ' ')
-	onlyPipe[sy][sx] = 'J' // This is the S and I'm a cheater for hardcoding it
+	onlyPipe[sy][sx] = getStartShape(sx, sy, tx1, ty1, tx2, ty2)
 
 	// pt => "previous travel"
 	ptx1, pty1, ptx2, pty2 := sx, sy, sx, sy
@@ -97,115 +130,62 @@ foundS:
 
 	onlyPipe[ty1][tx1] = grid[ty1][tx1]
 
-	util.PrintGrid(onlyPipe, "%c")
-	fmt.Println()
-
-	type cache struct {
-		inside     bool
-		lastCorner rune
-	}
-
-	goingDown := util.FillGrid(w, h, cache{})
-	goingUp := util.FillGrid(w, h, cache{})
-	goingRight := util.FillGrid(w, h, cache{})
-	goingLeft := util.FillGrid(w, h, cache{})
-
-	for i := 0; i < w; i += 1 {
-		for j := 0; j < h; j += 1 {
-			x, y, rx, uy := i, j, w-i-1, h-j-1
-
-			var prevDown, prevUp, prevRight, prevLeft cache
-
-			if j != 0 {
-				prevDown, prevUp = goingDown[y-1][x], goingUp[uy+1][rx]
-			} else {
-				prevDown, prevUp = cache{false, '|'}, cache{false, '|'}
-			}
-
-			if i != 0 {
-				prevRight, prevLeft = goingRight[y][x-1], goingLeft[uy][rx+1]
-			} else {
-				prevRight, prevLeft = cache{false, '-'}, cache{false, '-'}
-			}
-
-			goingDown[y][x], goingUp[uy][rx], goingRight[y][x], goingLeft[uy][rx] = prevDown, prevUp, prevRight, prevLeft
-
-			if onlyPipe[y][x] != ' ' {
-				dx, _, _, ry := getAllowedMoves(onlyPipe[y][x])
-				pdx, _, _, _ := getAllowedMoves(prevDown.lastCorner)
-				_, _, _, pry := getAllowedMoves(prevRight.lastCorner)
-
-				if dx != 0 && dx != -1*pdx {
-					goingDown[y][x].inside = !goingDown[y][x].inside
-				}
-				if onlyPipe[y][x] != '|' {
-					goingDown[y][x].lastCorner = onlyPipe[y][x]
-				}
-
-				if ry != 0 && ry != -1*pry {
-					goingRight[y][x].inside = !goingRight[y][x].inside
-				}
-				if onlyPipe[y][x] != '-' {
-					goingRight[y][x].lastCorner = onlyPipe[y][x]
-				}
-			}
-
-			if onlyPipe[uy][rx] != ' ' {
-				ux, _, _, ly := getAllowedMoves(onlyPipe[uy][rx])
-				pux, _, _, _ := getAllowedMoves(prevUp.lastCorner)
-				_, _, _, ply := getAllowedMoves(prevLeft.lastCorner)
-
-				if ux != 0 && ux != -1*pux {
-					goingUp[uy][rx].inside = !goingUp[uy][rx].inside
-				}
-				if onlyPipe[uy][rx] != '|' {
-					goingUp[uy][rx].lastCorner = onlyPipe[uy][rx]
-				}
-
-				if ly != 0 && ly != -1*ply {
-					goingLeft[uy][rx].inside = !goingLeft[uy][rx].inside
-				}
-				if onlyPipe[uy][rx] != '-' {
-					goingLeft[uy][rx].lastCorner = onlyPipe[uy][rx]
-				}
-			}
-		}
-	}
-
-	cnt := 0
-
-	directionCounts := util.FillGrid(w, h, 0)
-
-	for x := 0; x < w; x += 1 {
-		for y := 0; y < h; y += 1 {
-			if goingDown[y][x].inside {
-				directionCounts[y][x] += (1 << 3)
-			}
-			if goingUp[y][x].inside {
-				directionCounts[y][x] += (1 << 2)
-			}
-			if goingRight[y][x].inside {
-				directionCounts[y][x] += (1 << 1)
-			}
-			if goingLeft[y][x].inside {
-				directionCounts[y][x] += (1 << 0)
-			}
-		}
-	}
-
-	util.PrintGrid(directionCounts, "%x")
-	fmt.Println()
-
-	for x := 0; x < w; x += 1 {
-		for y := 0; y < h; y += 1 {
-			if onlyPipe[y][x] == ' ' && directionCounts[y][x] == 0xf {
-				onlyPipe[y][x] = 'I'
-				cnt += 1
-			}
-		}
+	onlyPipe = append([][]rune{util.Repeat(' ', w)}, onlyPipe...)
+	for i := 0; i <= h; i += 1 {
+		onlyPipe[i] = append([]rune{' '}, onlyPipe[i]...)
 	}
 
 	util.PrintGrid(onlyPipe, "%c")
+	fmt.Println()
 
-	fmt.Println(cnt)
+	type point struct{ x, y int }
+	q := []point{
+		{0, 0},
+	}
+	seen := util.FillGrid(w+1, h+1, false)
+
+	for len(q) > 0 {
+		x, y := q[0].x, q[0].y
+		q = q[1:]
+
+		if seen[y][x] {
+			continue
+		}
+
+		seen[y][x] = true
+		onlyPipe[y][x] = 'O'
+
+		// '┘', '└', '│', '─', '┌', '┐'
+
+		// Try go up
+		if y > 0 && !seen[y-1][x] {
+			r := onlyPipe[y-1][x]
+			if r != '─' && r != '┐' && r != '┘' {
+				q = append(q, point{x, y - 1})
+			}
+		}
+		// Try go down
+		if y < h && !seen[y+1][x] {
+			r := onlyPipe[y][x]
+			if r != '─' && r != '┐' && r != '┘' {
+				q = append(q, point{x, y + 1})
+			}
+		}
+		// Try go right
+		if x < w && !seen[y][x+1] {
+			r := onlyPipe[y][x]
+			if r != '│' && r != '└' && r != '┘' {
+				q = append(q, point{x + 1, y})
+			}
+		}
+		// Try go left
+		if x > 0 && !seen[y][x-1] {
+			r := onlyPipe[y][x-1]
+			if r != '│' && r != '└' && r != '┘' {
+				q = append(q, point{x, y - 1})
+			}
+		}
+	}
+
+	//fmt.Println(cnt)
 }

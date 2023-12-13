@@ -42,6 +42,16 @@ func ReadInputBlocks(f string) [][]string {
 	})
 }
 
+func Repeat[T any](v T, cnt int) []T {
+	arr := make([]T, cnt)
+
+	for i := 0; i < cnt; i += 1 {
+		arr[i] = v
+	}
+
+	return arr
+}
+
 func Map[X, Y any](xArr []X, f func(X) Y) []Y {
 	yArr := make([]Y, len(xArr))
 
