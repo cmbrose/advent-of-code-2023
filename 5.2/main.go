@@ -88,7 +88,7 @@ func (m mapping) mapRange(r mapRange) []mapRange {
 	for _, e := range m.entries {
 		if r.start < e.srcStart {
 			diff := e.srcStart - r.start
-			length := util.MinInt(diff, r.length)
+			length := util.Min(diff, r.length)
 			r2 := mapRange{
 				r.start,
 				length,

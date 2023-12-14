@@ -110,7 +110,7 @@ func ParseBitString(str string) int {
 	return val
 }
 
-func IntSign(x int) int {
+func Sign[T Number](x T) int {
 	if x > 0 {
 		return 1
 	}
@@ -120,7 +120,7 @@ func IntSign(x int) int {
 	return 0
 }
 
-func AbsInt(x int) int {
+func Abs[T Number](x T) T {
 	if x < 0 {
 		return -x
 	} else {
@@ -128,10 +128,10 @@ func AbsInt(x int) int {
 	}
 }
 
-func MinInt(ints ...int) int {
-	var min int
+func Min[T Number](nums ...T) T {
+	var min T
 
-	for i, x := range ints {
+	for i, x := range nums {
 		if i == 0 || x < min {
 			min = x
 		}
@@ -140,10 +140,10 @@ func MinInt(ints ...int) int {
 	return min
 }
 
-func MaxInt(ints ...int) int {
-	var max int
+func Max[T Number](nums ...T) T {
+	var max T
 
-	for i, x := range ints {
+	for i, x := range nums {
 		if i == 0 || x > max {
 			max = x
 		}
@@ -410,8 +410,8 @@ func FillGrid[T any](w, h int, def T) [][]T {
 }
 
 func Step(x1, y1, x2, y2 int, f func(x, y int)) {
-	stepX := IntSign(x2 - x1)
-	stepY := IntSign(y2 - y1)
+	stepX := Sign(x2 - x1)
+	stepY := Sign(y2 - y1)
 
 	for x, y := x1, y1; x != x2 || y != y2; x, y = x+stepX, y+stepY {
 		f(x, y)

@@ -48,9 +48,9 @@ func main() {
 	powSum := 0
 
 	for _, game := range games {
-		red := util.MaxInt(util.Map(game.pulls, func(p pullResult) int { return p.red })...)
-		green := util.MaxInt(util.Map(game.pulls, func(p pullResult) int { return p.green })...)
-		blue := util.MaxInt(util.Map(game.pulls, func(p pullResult) int { return p.blue })...)
+		red := util.Max(util.Map(game.pulls, func(p pullResult) int { return p.red })...)
+		green := util.Max(util.Map(game.pulls, func(p pullResult) int { return p.green })...)
+		blue := util.Max(util.Map(game.pulls, func(p pullResult) int { return p.blue })...)
 
 		powSum += red * green * blue
 	}
