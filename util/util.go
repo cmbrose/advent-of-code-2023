@@ -42,6 +42,12 @@ func ReadInputBlocks(f string) [][]string {
 	})
 }
 
+func ReadInputRuneGrid(f string) [][]rune {
+	lines := ReadInputLines(f)
+
+	return Map(lines, func(line string) []rune { return []rune(line) })
+}
+
 func Repeat[T any](v T, cnt int) []T {
 	arr := make([]T, cnt)
 
